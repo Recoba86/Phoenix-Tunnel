@@ -308,14 +308,14 @@ function full_auto_install() {
     SERVER_PUB_KEY=\$(grep 'Public Key:' server_keys_$CONN_NAME.txt | awk '{print \$3}')
     
     cat > server_${CONN_NAME}.toml <<EOL
-listen_addr = \\\":$TUNNEL_PORT\\\"
+listen_addr = \":$FOREIGN_PORT\"
 [security]
 enable_socks5 = true
-enable_udp = false
+enable_udp = true
 enable_shadowsocks = false
 enable_ssh = false
-private_key = \\\"server_${CONN_NAME}.private.key\\\"
-authorized_clients = [ \\\"$CLIENT_PUB_KEY\\\" ]
+private_key = \"server_${CONN_NAME}.private.key\"
+authorized_clients = [ \"$CLIENT_PUB_KEY\" ]
 EOL
 
     cat > /etc/systemd/system/phoenix-server-${CONN_NAME}.service <<EOL
@@ -330,7 +330,7 @@ WantedBy=multi-user.target
 EOL
 
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
-    echo \"SERVER_PUB:\$SERVER_PUB_KEY\"
+    echo "SERVER_PUB:$SERVER_PUB_KEY"
     "
     REMOTE_RESULT=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT")
     SERVER_PUB_KEY=$(echo "$REMOTE_RESULT" | grep 'SERVER_PUB:' | cut -d':' -f2)
