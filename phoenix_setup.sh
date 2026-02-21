@@ -162,7 +162,7 @@ function install_server_manual() {
     echo "Generating keys..."
     ./phoenix-server -gen-keys > keys_$CONN_NAME.txt 2>&1
     mv private.key server_${CONN_NAME}.private.key
-    SERVER_PUB_KEY=$(grep -A 1 'Public Key:' keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    SERVER_PUB_KEY=$(grep -A 1 'Public Key' keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
     
     read -p "Enter the Client Public Key (leave empty if you don't have it yet): " CLIENT_PUB_KEY
     if [ -z "$CLIENT_PUB_KEY" ]; then
@@ -224,7 +224,7 @@ function install_client_manual() {
     
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep -A 1 'Public Key:' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    CLIENT_PUB_KEY=$(grep -A 1 'Public Key' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
     
     cat > client_${CONN_NAME}.toml <<EOL
 remote_addr = "$FOREIGN_IP:$TUNNEL_PORT"
@@ -291,7 +291,7 @@ function full_auto_install() {
     fi
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep -A 1 'Public Key:' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    CLIENT_PUB_KEY=$(grep -A 1 'Public Key' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
 
     echo -e "${YELLOW}Installing Server remotely (Foreign)...${NC}"
     SERVER_SCRIPT="
@@ -305,7 +305,7 @@ function full_auto_install() {
     fi
     ./phoenix-server -gen-keys > server_keys_$CONN_NAME.txt 2>&1
     mv private.key server_${CONN_NAME}.private.key
-    SERVER_PUB_KEY=\$(grep -A 1 'Public Key:' server_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\\r')
+    SERVER_PUB_KEY=\$(grep -A 1 'Public Key' server_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\\r')
     
     cat > server_${CONN_NAME}.toml <<EOL
 listen_addr = \":$TUNNEL_PORT\"
@@ -332,7 +332,7 @@ EOL
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
     "
     sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT"
-    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "cat /opt/phoenix/server_keys_${CONN_NAME}.txt" | grep -A 1 'Public Key:' | tail -n 1 | tr -d '\r')
+    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "cat /opt/phoenix/server_keys_${CONN_NAME}.txt" | grep -A 1 'Public Key' | tail -n 1 | tr -d '\r')
 
     echo -e "${YELLOW}Configuring Client Locally (Iran)...${NC}"
     cat > client_${CONN_NAME}.toml <<EOL
