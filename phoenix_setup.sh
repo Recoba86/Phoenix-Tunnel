@@ -224,7 +224,7 @@ function install_client_manual() {
     
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep -A 1 'Public Key' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
     
     cat > client_${CONN_NAME}.toml <<EOL
 remote_addr = "$FOREIGN_IP:$TUNNEL_PORT"
@@ -291,7 +291,7 @@ function full_auto_install() {
     fi
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep -A 1 'Public Key' client_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
 
     echo -e "${YELLOW}Installing Server remotely (Foreign)...${NC}"
     SERVER_SCRIPT="
