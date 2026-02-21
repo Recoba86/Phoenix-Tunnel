@@ -304,7 +304,7 @@ function full_auto_install() {
         chmod +x phoenix-server
     fi
     ./phoenix-server -gen-keys > server_keys_$CONN_NAME.txt 2>&1
-    mv server_private.key server_${CONN_NAME}.private.key
+    mv private.key server_${CONN_NAME}.private.key
     SERVER_PUB_KEY=\$(grep 'Public Key:' server_keys_$CONN_NAME.txt | awk '{print \$3}')
     
     cat > server_${CONN_NAME}.toml <<EOL
@@ -505,7 +505,10 @@ while true; do
     echo "5) Full Uninstall (Clean everything off this machine)"
     echo "0) Exit"
     echo "------------------------------------------------------"
-    read -p "Select an option: " choice
+    if ! read -p "Select an option: " choice; then
+        echo -e "\n${YELLOW}Input stream closed. Exiting.${NC}"
+        break
+    fi
 
     case $choice in
         1) install_server_manual ;;
