@@ -332,7 +332,7 @@ EOL
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
     "
     sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT"
-    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "grep 'Public Key:' /opt/phoenix/server_keys_$CONN_NAME.txt | awk '{print \$3}'")
+    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "grep 'Public Key:' /opt/phoenix/server_keys_${conn_name}.txt | awk '{print \$3}'")
 
     echo -e "${YELLOW}Configuring Client Locally (Iran)...${NC}"
     cat > client_${CONN_NAME}.toml <<EOL
