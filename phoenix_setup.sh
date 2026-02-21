@@ -161,7 +161,7 @@ function install_server_manual() {
     
     echo "Generating keys..."
     ./phoenix-server -gen-keys > keys_$CONN_NAME.txt 2>&1
-    mv server_private.key server_${CONN_NAME}.private.key
+    mv private.key server_${CONN_NAME}.private.key
     SERVER_PUB_KEY=$(grep 'Public Key:' keys_$CONN_NAME.txt | awk '{print $3}')
     
     read -p "Enter the Client Public Key (leave empty if you don't have it yet): " CLIENT_PUB_KEY
