@@ -330,7 +330,7 @@ WantedBy=multi-user.target
 EOL
 
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
-    echo "SERVER_PUB:$SERVER_PUB_KEY"
+    echo "SERVER_PUB:\$SERVER_PUB_KEY"
     "
     REMOTE_RESULT=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT")
     SERVER_PUB_KEY=$(echo "$REMOTE_RESULT" | grep 'SERVER_PUB:' | cut -d':' -f2)
