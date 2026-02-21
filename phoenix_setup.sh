@@ -161,7 +161,7 @@ function install_server_manual() {
     
     echo "Generating keys..."
     ./phoenix-server -gen-keys > keys_$CONN_NAME.txt 2>&1
-    mv private.key server_${CONN_NAME}.private.key
+    mv server_private.key server_${CONN_NAME}.private.key
     SERVER_PUB_KEY=$(grep 'Public Key:' keys_$CONN_NAME.txt | awk '{print $3}')
     
     read -p "Enter the Client Public Key (leave empty if you don't have it yet): " CLIENT_PUB_KEY
@@ -223,7 +223,7 @@ function install_client_manual() {
     fi
     
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
-    mv private.key client_${CONN_NAME}.private.key
+    mv client_private.key client_${CONN_NAME}.private.key
     CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
     
     cat > client_${CONN_NAME}.toml <<EOL
@@ -290,11 +290,13 @@ function full_auto_install() {
         chmod +x phoenix-client
     fi
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
-    mv private.key client_${CONN_NAME}.private.key
+    mv client_private.key client_${CONN_NAME}.private.key
     CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
 
     echo -e "${YELLOW}Installing Server remotely (Foreign)...${NC}"
     SERVER_SCRIPT="
+    apt-get update -y -q > /dev/null 2>&1
+    apt-get install -y -q wget unzip > /dev/null 2>&1
     mkdir -p /opt/phoenix && cd /opt/phoenix
     if [ ! -f \"phoenix-server\" ]; then
         wget -qO phoenix-server.zip \"https://github.com/Fox-Fig/phoenix/releases/latest/download/phoenix-server-linux-amd64.zip\" > /dev/null 2>&1
@@ -302,7 +304,7 @@ function full_auto_install() {
         chmod +x phoenix-server
     fi
     ./phoenix-server -gen-keys > server_keys_$CONN_NAME.txt 2>&1
-    mv private.key server_${CONN_NAME}.private.key
+    mv server_private.key server_${CONN_NAME}.private.key
     SERVER_PUB_KEY=\$(grep 'Public Key:' server_keys_$CONN_NAME.txt | awk '{print \$3}')
     
     cat > server_${CONN_NAME}.toml <<EOL
