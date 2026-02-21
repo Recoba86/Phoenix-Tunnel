@@ -308,7 +308,7 @@ function full_auto_install() {
     SERVER_PUB_KEY=\$(grep 'Public Key:' server_keys_$CONN_NAME.txt | awk '{print \$3}')
     
     cat > server_${CONN_NAME}.toml <<EOL
-listen_addr = \":$FOREIGN_PORT\"
+listen_addr = \":$TUNNEL_PORT\"
 [security]
 enable_socks5 = true
 enable_udp = true
