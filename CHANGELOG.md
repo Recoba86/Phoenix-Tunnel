@@ -2,6 +2,22 @@
 
 All notable changes to the `Phoenix Tunnel Automation` project will be documented in this file.
 
+## [1.0.1] - 2026-02-22
+
+### Added
+- Added `extract_public_key_from_file()` helper to reliably parse Phoenix public keys from generated key files.
+- Added explicit fail-fast checks for missing parsed keys in Manual/Full-Auto setup flows.
+- Added DPI diagnostic workflow documentation (`h2c` first, then `mTLS`) in `README.md`.
+
+### Changed
+- Updated manual server template to set `enable_udp = true` for better Xray compatibility.
+- Updated full-auto remote key retrieval to parse key files directly on the foreign host using a robust base64 matcher.
+- Updated README download URL to point to this repository's GitHub path.
+
+### Fixed
+- Fixed tunnel file deletion wildcard bug in manage mode (`rm -f "$PHOENIX_DIR"/*"$conn_name"*`).
+- Improved resilience when Phoenix output format differs between versions for client/server key generation.
+
 ## [1.0.0] - 2026-02-22
 
 ### Added

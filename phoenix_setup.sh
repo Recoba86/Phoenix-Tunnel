@@ -31,6 +31,11 @@ function install_dependencies() {
     apt-get install -y -q wget unzip curl sshpass jq > /dev/null 2>&1
 }
 
+function extract_public_key_from_file() {
+    local key_file=$1
+    grep -Eom1 '[A-Za-z0-9+/]{43}=' "$key_file" | tr -d '\r'
+}
+
 # ------------------------------------------------------------------------------
 # XRAY ROUTING CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -162,7 +167,11 @@ function install_server_manual() {
     echo "Generating keys..."
     ./phoenix-server -gen-keys > keys_$CONN_NAME.txt 2>&1
     mv private.key server_${CONN_NAME}.private.key
-    SERVER_PUB_KEY=$(grep -A 1 'Public Key' keys_$CONN_NAME.txt | tail -n 1 | tr -d '\r')
+    SERVER_PUB_KEY=$(extract_public_key_from_file "keys_$CONN_NAME.txt")
+    if [ -z "$SERVER_PUB_KEY" ]; then
+        echo -e "${RED}Failed to extract server public key from keys_$CONN_NAME.txt${NC}"
+        return
+    fi
     
     read -p "Enter the Client Public Key (leave empty if you don't have it yet): " CLIENT_PUB_KEY
     if [ -z "$CLIENT_PUB_KEY" ]; then
@@ -175,7 +184,7 @@ function install_server_manual() {
 listen_addr = ":$TUNNEL_PORT"
 [security]
 enable_socks5 = true
-enable_udp = false
+enable_udp = true
 enable_shadowsocks = false
 enable_ssh = false
 private_key = "server_${CONN_NAME}.private.key"
@@ -224,7 +233,11 @@ function install_client_manual() {
     
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
+    CLIENT_PUB_KEY=$(extract_public_key_from_file "client_keys_$CONN_NAME.txt")
+    if [ -z "$CLIENT_PUB_KEY" ]; then
+        echo -e "${RED}Failed to extract client public key from client_keys_$CONN_NAME.txt${NC}"
+        return
+    fi
     
     cat > client_${CONN_NAME}.toml <<EOL
 remote_addr = "$FOREIGN_IP:$TUNNEL_PORT"
@@ -291,7 +304,11 @@ function full_auto_install() {
     fi
     ./phoenix-client -gen-keys > client_keys_$CONN_NAME.txt 2>&1
     mv client_private.key client_${CONN_NAME}.private.key
-    CLIENT_PUB_KEY=$(grep 'Public Key:' client_keys_$CONN_NAME.txt | awk '{print $3}')
+    CLIENT_PUB_KEY=$(extract_public_key_from_file "client_keys_$CONN_NAME.txt")
+    if [ -z "$CLIENT_PUB_KEY" ]; then
+        echo -e "${RED}Failed to extract client public key from client_keys_$CONN_NAME.txt${NC}"
+        return
+    fi
 
     echo -e "${YELLOW}Installing Server remotely (Foreign)...${NC}"
     SERVER_SCRIPT="
@@ -305,7 +322,6 @@ function full_auto_install() {
     fi
     ./phoenix-server -gen-keys > server_keys_$CONN_NAME.txt 2>&1
     mv private.key server_${CONN_NAME}.private.key
-    SERVER_PUB_KEY=\$(grep -A 1 'Public Key' server_keys_$CONN_NAME.txt | tail -n 1 | tr -d '\\r')
     
     cat > server_${CONN_NAME}.toml <<EOL
 listen_addr = \":$TUNNEL_PORT\"
@@ -332,7 +348,11 @@ EOL
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
     "
     sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT"
-    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "cat /opt/phoenix/server_keys_${CONN_NAME}.txt" | grep -A 1 'Public Key' | tail -n 1 | tr -d '\r')
+    SERVER_PUB_KEY=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "grep -Eom1 '[A-Za-z0-9+/]{43}=' /opt/phoenix/server_keys_${CONN_NAME}.txt" | tr -d '\r')
+    if [ -z "$SERVER_PUB_KEY" ]; then
+        echo -e "${RED}Failed to fetch remote server public key for $CONN_NAME${NC}"
+        return
+    fi
 
     echo -e "${YELLOW}Configuring Client Locally (Iran)...${NC}"
     cat > client_${CONN_NAME}.toml <<EOL
@@ -436,7 +456,7 @@ function manage_tunnels() {
                 systemctl daemon-reload
                 
                 # Clean up Phoenix files
-                rm -f "$PHOENIX_DIR/*${conn_name}*"
+                rm -f "$PHOENIX_DIR"/*"$conn_name"*
                 
                 # Clean up Xray rules if exists
                 if [ -f "$XRAY_CONFIG_FILE" ]; then
