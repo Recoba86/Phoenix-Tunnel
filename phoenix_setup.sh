@@ -278,7 +278,7 @@ function full_auto_install() {
     LOCAL_SOCKS=${LOCAL_SOCKS:-1080}
 
     echo "Testing SSH connection..."
-    if ! sshpass -p "$FOREIGN_PASS" ssh -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "echo 'SSH OK'" > /dev/null 2>&1; then
+    if ! sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "echo 'SSH OK'" > /dev/null 2>&1; then
         echo -e "${RED}SSH Connection failed. Check credentials or use Manual Mode.${NC}"
         return
     fi
@@ -330,7 +330,7 @@ EOL
     systemctl daemon-reload && systemctl enable --now phoenix-server-${CONN_NAME} > /dev/null 2>&1
     echo \"SERVER_PUB:\$SERVER_PUB_KEY\"
     "
-    REMOTE_RESULT=$(sshpass -p "$FOREIGN_PASS" ssh -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT")
+    REMOTE_RESULT=$(sshpass -p "$FOREIGN_PASS" ssh -n -o StrictHostKeyChecking=no -p $FOREIGN_PORT root@$FOREIGN_IP "$SERVER_SCRIPT")
     SERVER_PUB_KEY=$(echo "$REMOTE_RESULT" | grep 'SERVER_PUB:' | cut -d':' -f2)
 
     echo -e "${YELLOW}Configuring Client Locally (Iran)...${NC}"
